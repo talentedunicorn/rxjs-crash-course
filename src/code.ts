@@ -1,13 +1,13 @@
-import { Subject } from 'rxjs'
+import { BehaviorSubject } from 'rxjs'
 import { addToList } from './lib/domUtils'
 
 const containerEl = document.getElementById('app')
 const listEl = containerEl.querySelector('ol');
-const listClasses = ['p-4', 'rounded'];
+const listClasses = ['p-4', 'rounded-md'];
 const addListItem = (data: string, classes: string[]) => addToList(listEl, data, classes)
 
-// Can subscribe and emit values
-const subject = new Subject()
+// BehaviorSubject receives the last emitted value before the new one
+const subject = new BehaviorSubject('Initial')
 
 subject.subscribe(
   (data:string) => addListItem(data, [...listClasses, 'bg-white']),
@@ -16,6 +16,7 @@ subject.subscribe(
 )
 
 subject.next('First thing sent!')
+subject.next('... warming up observer 2')
 
 const subscription2 = subject.subscribe(
   (data: string) => addListItem(data, [...listClasses, 'bg-black', 'text-white'])
