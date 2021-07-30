@@ -1,4 +1,4 @@
-import { from, pluck } from 'rxjs'
+import { Observable, Subject, skipUntil } from 'rxjs'
 import { addToList } from './lib/domUtils'
 
 const containerEl = document.getElementById('app')
@@ -6,21 +6,23 @@ const listEl = containerEl.querySelector('ol');
 const listClasses = (bg?: string) => ['p-4', 'rounded-md', bg ? `bg-${bg}`: 'bg-white'];
 const addListItem = (data: string, classes: string[]) => addToList(listEl, data, classes)
 
-const testData = [
-  {
-    first: 'Lim', last: 'Kee', age: 43,
-  },
-  {
-    first: 'Tina', last: 'Turners', age: 32,
-  },
-  {
-    first: 'Lance', last: 'Joy', age: 23,
-  }
-]
+const ob1 = new Observable((data: any) => {
+  let i: number = 1
+  setInterval(() => data.next(i++), 1000)
+})
 
-from(testData)
-  .pipe(pluck('first'))
-  .subscribe((first: string) => addListItem(first, listClasses()))
-from(testData)
-  .pipe(pluck('last'))
-  .subscribe((last: string) => addListItem(last, listClasses('gray-300')))
+const ob2 = new Subject;
+
+setTimeout(() => {
+  ob2.next('Is me, Subject')
+}, 3000)
+
+// sub2 has to emit value before sub1 can produce value i.e. after 3s
+const ob3 = ob1.pipe(skipUntil(ob2))
+
+const sub = ob3.subscribe((data: string) => addListItem(data, listClasses()))
+
+
+setTimeout(() => {
+  sub.unsubscribe()
+}, 11000)
