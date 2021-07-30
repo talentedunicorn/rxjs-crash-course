@@ -1,32 +1,26 @@
-import { AsyncSubject } from 'rxjs'
+import { Observable, merge } from 'rxjs'
 import { addToList } from './lib/domUtils'
 
 const containerEl = document.getElementById('app')
 const listEl = containerEl.querySelector('ol');
-const listClasses = ['p-4', 'rounded-md'];
+const listClasses = (bg?: string) => ['p-4', 'rounded-md', bg ? `bg-${bg}`: 'bg-white'];
 const addListItem = (data: string, classes: string[]) => addToList(listEl, data, classes)
 
-// AsyncSubject only sends last item of stream and when .complete() is called
-const subject = new AsyncSubject()
-subject.next('Testing')
+const sub1 = new Observable((observer: any) => {
+  observer.next('Hello, Operator')
+})
 
-subject.subscribe(
-  (data:string) => addListItem(data, [...listClasses, 'bg-white']),
-  (err) => addListItem(`${err}`, [...listClasses, 'bg-red-200']),
-  () => addListItem('Completed', [...listClasses, 'bg-blue-400']) 
+const sub2 = new Observable((observer: any) => {
+  observer.next('Who is this?')
+})
+
+// This subscription will have values from both sub1 and sub2
+const mergedSub = merge(sub1, sub2)
+
+mergedSub.subscribe(
+  (data: any) => {
+    addListItem(data, listClasses())
+  },
 )
-subject.next('First thing sent!')
-subject.next('... warming up observer 2')
 
-const subscription2 = subject.subscribe(
-  (data: string) => addListItem(data, [...listClasses, 'bg-black', 'text-white'])
-)
-
-subject.next('Second thing goes here')
-subject.next('Third thing is cool')
-subject.complete()
-
-subscription2.unsubscribe()
-
-subject.next('Last thing sent')
-subject.complete()
+sub2.subscribe((data: string) => addListItem(data, listClasses('blue-200')))
